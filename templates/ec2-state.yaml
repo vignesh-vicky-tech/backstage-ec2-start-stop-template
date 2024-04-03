@@ -1,0 +1,47 @@
+---
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: ec2-instance-state
+  title: Start/Stop EC2 Instance
+  description: EC2 Instance state
+spec:
+  owner: user:guest
+  type: service
+  parameters:
+    - title: Basic EC2 instance Configuration
+      required:
+        - name
+        - instanceState
+      properties:
+        name:
+          title: Instance Name
+          type: string
+          description: The name of your EC2 instance
+          ui:autofocus: true
+        instanceState:
+          title: Instance State
+          type: string
+          description: The state of the instance
+          ui:autofocus: true
+          enum:
+            - start
+            - stop
+            - reboot
+            - delete
+  steps:
+    - id: github-action
+      name: Trigger GitHub Action
+      action: github:actions:dispatch
+      input:
+        workflowId: instance-state.yaml
+        repoUrl: github.com?repo=ec2-state-workflow&owner=vignesh-vicky-tech
+        branchOrTagName: main
+        workflowInputs:
+          name: ${{ parameters.name }}
+          instanceState: ${{ parameters.instanceState }}
+  output:
+    links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
